@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 String outputText = "";
-  final myController = TextEditingController();
+const List<String> frequencyList = <String>['Daily', 'Weekly', 'Bi-Weekly', 'Monthly', 'Quarterly', 'Bi-Annually', 'Annually'];
+final income1Controller = TextEditingController();
+final income2Controller = TextEditingController();
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -33,6 +35,8 @@ class MyAppState extends ChangeNotifier {}
 // ...
 
 class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key});
+
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -47,9 +51,9 @@ class _MyHomePageState extends State<MyHomePage> {
       case 0:
         page = IncomePage();
       case 1:
-        page = Placeholder();
+        page = const Placeholder();
       case 2:
-        page = Placeholder();
+        page = const Placeholder();
       case 3:
         calculateTotal();
       default:
@@ -62,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
             SafeArea(
               child: NavigationRail(
                 extended: constraints.maxWidth >= 600,
-                destinations: [
+                destinations: const [
                   NavigationRailDestination(
                     icon: Icon(Icons.account_balance),
                     label: Text('Income'),
@@ -101,11 +105,16 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void calculateTotal() {
-    outputText = myController.text;
+    int income1 = int.parse(income1Controller.text);
+    int income2 = int.parse(income2Controller.text);
+
+    outputText = (income1 + income2).toString();
   }
 }
 
 class IncomePage extends StatefulWidget {
+  const IncomePage({super.key});
+
   @override
   State<IncomePage> createState() => _IncomePageState();
 }
@@ -114,30 +123,48 @@ class _IncomePageState extends State<IncomePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
-  void dispose() {
-    // Clean up the controller when the widget is disposed.
-    myController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Form(
       key: _formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text("INCOME"),
+          const Text("INCOME"),
           Row(
             children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
                 child: Text("Net Income 1:"),
               ),
               SizedBox(
                 width: (MediaQuery.of(context).size.width) / 4,
                 child: TextFormField(
-                  controller: myController,
+                  controller: income1Controller,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  validator: validateInput,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: SizedBox(
+                    width: (MediaQuery.of(context).size.width) / 4,
+                    child: frequencyDD()),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text("Net Income 2:"),
+              ),
+              SizedBox(
+                width: (MediaQuery.of(context).size.width) / 4,
+                child: TextFormField(
+                  controller: income2Controller,
                   keyboardType: TextInputType.number,
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly
@@ -147,29 +174,28 @@ class _IncomePageState extends State<IncomePage> {
               ),
             ],
           ),
-          SizedBox(height: 20,),
+          const SizedBox(
+            height: 20,
+          ),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: SizedBox(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Container(
-                  decoration: const BoxDecoration(color: Colors.white),
-                  height: 40,
-                  width: MediaQuery.of(context).size.width,
-                  child: Center(
-                      child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(outputText),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text("Test Output 2"),
-                      ),
-                    ],
-                  )),
+              child: Container(
+                alignment: Alignment.center,
+                decoration: const BoxDecoration(color: Colors.white),
+                height: 40,
+                width: MediaQuery.of(context).size.width,
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(outputText),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Text("Test Output 2"),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -179,12 +205,37 @@ class _IncomePageState extends State<IncomePage> {
     );
   }
 
-  TextEditingController get getValue => myController;
-
   String? validateInput(String? value) {
     if (value == null || value.isEmpty) {
       return 'Enter a value';
     }
     return null;
+  }
+}
+
+class frequencyDD extends StatefulWidget {
+  const frequencyDD({super.key});
+
+  @override
+  State<frequencyDD> createState() => _frequencyDDState();
+}
+
+class _frequencyDDState extends State<frequencyDD> {
+  String dropdownValue = frequencyList.first;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownMenu<String>(
+      initialSelection: frequencyList.first,
+      onSelected: (String? value) {
+        // This is called when the user selects an item.
+        setState(() {
+          dropdownValue = value!;
+        });
+      },
+      dropdownMenuEntries: frequencyList.map<DropdownMenuEntry<String>>((String value) {
+        return DropdownMenuEntry<String>(value: value, label: value);
+      }).toList(),
+    );
   }
 }
